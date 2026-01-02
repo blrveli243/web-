@@ -18,7 +18,20 @@ export class NeedsService implements OnModuleInit {
   async onModuleInit() {
     const count = await this.categoryRepository.count();
     if (count === 0) {
-      await this.categoryRepository.save({ name: 'Genel Yardım' });
+      // Varsayılan kategorileri oluştur
+      const defaultCategories = [
+        { name: 'Genel Yardım' },
+        { name: 'Gıda' },
+        { name: 'Barınma (Çadır)' },
+        { name: 'İlaç/Sağlık' },
+        { name: 'Su' },
+        { name: 'Kıyafet' },
+        { name: 'Ulaşım' },
+      ];
+      
+      for (const category of defaultCategories) {
+        await this.categoryRepository.save(category);
+      }
     }
   }
 
