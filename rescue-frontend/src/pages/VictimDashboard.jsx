@@ -153,16 +153,27 @@ const VictimDashboard = () => {
             console.error("Hata mesajı:", error.message);
             console.error("Response status:", error.response?.status);
             console.error("Response data:", error.response?.data);
-            console.error("Request URL:", error.config?.url);
+            console.error("Request URL:", error.config?.baseURL + error.config?.url);
             console.error("Request method:", error.config?.method);
+            console.error("Full config:", error.config);
             
             let errorMessage = "Güncellerken hata oluştu.";
-            if (error.response?.data?.message) {
+            
+            // 404 hatası için özel mesaj
+            if (error.response?.status === 404) {
+                errorMessage = `Backend route bulunamadı (404). Backend URL'i kontrol edin: ${error.config?.baseURL || 'Ayarlanmamış'}`;
+            } else if (error.response?.status === 401) {
+                errorMessage = "Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.";
+            } else if (error.response?.status === 403) {
+                errorMessage = error.response?.data?.message || "Bu işlem için yetkiniz yok.";
+            } else if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             } else if (error.response?.data?.error) {
                 errorMessage = error.response.data.error;
             } else if (error.message) {
                 errorMessage = error.message;
+            } else if (!error.response) {
+                errorMessage = `Backend'e bağlanılamıyor. Backend URL'i: ${error.config?.baseURL || 'Ayarlanmamış'}`;
             }
             
             alert(`Hata: ${errorMessage}`);
