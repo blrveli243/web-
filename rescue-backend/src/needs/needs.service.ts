@@ -70,6 +70,16 @@ export class NeedsService implements OnModuleInit {
     if (!need) throw new NotFoundException('Talep bulunamadı.');
     need.status = status;
     return await this.needsRepository.save(need);
+
+  }// --- GENEL GÜNCELLEME FONKSİYONU ---
+  async update(id: number, attrs: any) {
+    const need = await this.findOne(id);
+    if (!need) {
+      throw new NotFoundException('Talep bulunamadı.');
+    }
+    // Gelen yeni verileri (attrs) mevcut verinin (need) üstüne yaz
+    Object.assign(need, attrs);
+    return this.needsRepository.save(need);
   }
 
   async remove(id: number) {

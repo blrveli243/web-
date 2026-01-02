@@ -26,7 +26,7 @@ export class NeedsController {
   async create(@Body() createNeedDto: CreateNeedDto, @Request() req) {
     this.logger.log('POST /needs çağrıldı');
     this.logger.log('Gelen veri:', JSON.stringify(createNeedDto));
-    
+
     // Token'dan gelen userId ile frontend'den gelen userId'yi karşılaştır
     if (createNeedDto.userId !== req.user.id) {
       throw new ForbiddenException('Başkası adına talep oluşturamazsınız');
@@ -50,6 +50,12 @@ export class NeedsController {
     }
     // Volunteer rolü tüm talepleri görebilir
     return this.needsService.findAll();
+  }
+
+  // --- GÜNCELLEME KAPISI ---
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: any) {
+    return this.needsService.update(+id, body);
   }
 
   @Patch(':id/status')
