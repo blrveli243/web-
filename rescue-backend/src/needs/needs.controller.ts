@@ -54,36 +54,6 @@ export class NeedsController {
   }
 
   // Spesifik route'lar önce tanımlanmalı (daha spesifik olan önce)
-  // ÖNEMLİ: Bu route'lar @Get(':id'), @Patch(':id'), @Delete(':id') önünde olmalı
-  @Post(':id/volunteers')
-  async addVolunteer(@Param('id') id: string, @Request() req) {
-    // Sadece Volunteer rolü volunteer olarak eklenebilir
-    if (req.user.role !== 'Volunteer') {
-      throw new ForbiddenException('Sadece gönüllüler yardım edebilir');
-    }
-
-    return this.needsService.addVolunteer(+id, req.user.id);
-  }
-
-  @Delete(':id/volunteers/:userId')
-  async removeVolunteer(
-    @Param('id') id: string,
-    @Param('userId') userId: string,
-    @Request() req,
-  ) {
-    // Sadece kendi volunteer kaydını silebilir veya talep sahibi
-    const need = await this.needsService.findOne(+id);
-    if (!need) {
-      throw new ForbiddenException('Talep bulunamadı');
-    }
-
-    if (req.user.id !== +userId && need.userId !== req.user.id) {
-      throw new ForbiddenException('Bu işlemi yapamazsınız');
-    }
-
-    return this.needsService.removeVolunteer(+id, +userId);
-  }
-
   @Patch(':id/status')
   async updateStatus(
     @Param('id') id: string,
@@ -101,19 +71,6 @@ export class NeedsController {
     }
 
     return this.needsService.updateStatus(+id, status);
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string, @Request() req) {
-    const need = await this.needsService.findOne(+id);
-    if (!need) {
-      throw new NotFoundException('Talep bulunamadı');
-    }
-    // Eğer kullanıcı Victim rolündeyse sadece kendi taleplerini görebilir
-    if (req.user.role === 'Victim' && need.userId !== req.user.id) {
-      throw new ForbiddenException('Bu talebi görüntüleyemezsiniz');
-    }
-    return need;
   }
 
   // --- GÜNCELLEME KAPISI ---
@@ -161,5 +118,34 @@ export class NeedsController {
     }
 
     return this.needsService.remove(+id);
+  }
+
+  @Post(':id/volunteers')
+  async addVolunteer(@Param('id') id: string, @Request() req) {
+    // Sadece Volunteer rolü volunteer olarak eklenebilir
+    if (req.user.role !== 'Volunteer') {
+      throw new ForbiddenException('Sadece gönüllüler yardım edebilir');
+    }
+
+    return this.needsService.addVolunteer(+id, req.user.id);
+  }
+
+  @Delete(':id/volunteers/:userId')
+  async removeVolunteer(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Request() req,
+  ) {
+    // Sadece kendi volunteer kaydını silebilir veya talep sahibi
+    const need = await this.needsService.findOne(+id);
+    if (!need) {
+      throw new ForbiddenException('Talep bulunamadı');
+    }
+
+    if (req.user.id !== +userId && need.userId !== req.user.id) {
+      throw new ForbiddenException('Bu işlemi yapamazsınız');
+    }
+
+    return this.needsService.removeVolunteer(+id, +userId);
   }
 }
