@@ -161,7 +161,8 @@ const VictimDashboard = () => {
             
             // 404 hatası için özel mesaj
             if (error.response?.status === 404) {
-                errorMessage = `Backend route bulunamadı (404). Backend URL'i kontrol edin: ${error.config?.baseURL || 'Ayarlanmamış'}`;
+                const requestURL = error.config?.baseURL + error.config?.url;
+                errorMessage = `Backend route bulunamadı (404).\n\nİstek URL'i: ${requestURL}\nBackend URL: ${error.config?.baseURL || 'Ayarlanmamış'}\n\nLütfen Render.com'da frontend servisinizde VITE_API_URL environment variable'ını backend URL'inize ayarlayın.\nÖrnek: https://your-backend-name.onrender.com`;
             } else if (error.response?.status === 401) {
                 errorMessage = "Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.";
             } else if (error.response?.status === 403) {

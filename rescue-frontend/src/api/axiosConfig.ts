@@ -1,8 +1,27 @@
 import axios, {AxiosInstance, InternalAxiosRequestConfig} from 'axios';
 
+// Backend URL'i environment variable'dan al, yoksa localhost kullan
+const getBackendURL = () => {
+    const envURL = import.meta.env.VITE_API_URL;
+    
+    // Eğer environment variable yoksa veya boşsa
+    if (!envURL || envURL.trim() === '') {
+        console.warn('⚠️ VITE_API_URL environment variable ayarlanmamış! Localhost kullanılıyor.');
+        return 'http://localhost:3000';
+    }
+    
+    // URL'in sonunda / varsa kaldır
+    const cleanURL = envURL.trim().replace(/\/$/, '');
+    
+    console.log('✅ Backend URL:', cleanURL);
+    return cleanURL;
+};
+
+const backendURL = getBackendURL();
+
 // baseURL içindeki noktalı virgül hatası düzeltildi
 const api: AxiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+    baseURL: backendURL,
     timeout: 10000, // 10 saniye timeout
 });
 
