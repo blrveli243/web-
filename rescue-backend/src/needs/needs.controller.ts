@@ -54,7 +54,18 @@ export class NeedsController {
 
   // --- GÜNCELLEME KAPISI ---
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: any) {
+  async update(@Param('id') id: string, @Body() body: any, @Request() req) {
+    // Önce talebi bul
+    const need = await this.needsService.findOne(+id);
+    if (!need) {
+      throw new ForbiddenException('Talep bulunamadı');
+    }
+
+    // Sadece talep sahibi güncelleyebilir
+    if (need.userId !== req.user.id) {
+      throw new ForbiddenException('Bu talebi güncelleyemezsiniz');
+    }
+
     return this.needsService.update(+id, body);
   }
 

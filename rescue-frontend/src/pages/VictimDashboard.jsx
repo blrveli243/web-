@@ -118,24 +118,29 @@ const VictimDashboard = () => {
         e.preventDefault();
         if (!editingNeed) return;
 
+        // Form validasyonu
+        if (!editingNeed.title?.trim() || !editingNeed.description?.trim()) {
+            alert("Lütfen tüm alanları doldurun.");
+            return;
+        }
+
         try {
             // Backend'e yeni verileri gönder
             await api.patch(`/needs/${editingNeed.id}`, {
-                title: editingNeed.title,
-                description: editingNeed.description,
+                title: editingNeed.title.trim(),
+                description: editingNeed.description.trim(),
                 categoryId: Number(editingNeed.categoryId)
             });
 
-            // Ekrandaki listeyi yenile (Sayfa yenilemeden)
-            setNeeds(needs.map(item =>
-                item.id === editingNeed.id ? {...item, ...editingNeed} : item
-            ));
+            // Listeyi backend'den yeniden çek
+            await fetchNeeds();
 
             setEditingNeed(null); // Pencereyi kapat
             alert("Talep güncellendi! ");
         } catch (error) {
             console.error("Güncelleme hatası:", error);
-            alert("Güncellerken hata oluştu.");
+            const errorMessage = error.response?.data?.message || error.response?.data?.error || "Güncellerken hata oluştu.";
+            alert(errorMessage);
         }
     };
 
@@ -357,21 +362,39 @@ const VictimDashboard = () => {
 
                         <form onSubmit={handleUpdateSubmit} className="space-y-4">
                             <div>
+                                <label className="block text-xs text-slate-400 mb-1">Kategori</label>
+                                <select
+                                    value={editingNeed.categoryId || ''}
+                                    onChange={(e) => setEditingNeed({...editingNeed, categoryId: Number(e.target.value)})}
+                                    className="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white outline-none focus:border-blue-500"
+                                    required
+                                >
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
                                 <label className="block text-xs text-slate-400 mb-1">Başlık</label>
                                 <input
                                     type="text"
-                                    value={editingNeed.title}
+                                    value={editingNeed.title || ''}
                                     onChange={(e) => setEditingNeed({...editingNeed, title: e.target.value})}
                                     className="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white outline-none focus:border-blue-500"
+                                    required
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs text-slate-400 mb-1">Açıklama</label>
                                 <textarea
-                                    value={editingNeed.description}
+                                    value={editingNeed.description || ''}
                                     onChange={(e) => setEditingNeed({...editingNeed, description: e.target.value})}
                                     className="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white outline-none h-32 resize-none focus:border-blue-500"
+                                    required
                                 />
                             </div>
 
