@@ -125,12 +125,22 @@ const VictimDashboard = () => {
         }
 
         try {
-            // Backend'e yeni verileri gönder
-            await api.patch(`/needs/${editingNeed.id}`, {
+            console.log('=== GÜNCELLEME İSTEĞİ BAŞLADI ===');
+            console.log('Talep ID:', editingNeed.id);
+            console.log('Gönderilecek veri:', {
                 title: editingNeed.title.trim(),
                 description: editingNeed.description.trim(),
                 categoryId: Number(editingNeed.categoryId)
             });
+
+            // Backend'e yeni verileri gönder
+            const response = await api.patch(`/needs/${editingNeed.id}`, {
+                title: editingNeed.title.trim(),
+                description: editingNeed.description.trim(),
+                categoryId: Number(editingNeed.categoryId)
+            });
+
+            console.log('Güncelleme başarılı:', response.data);
 
             // Listeyi backend'den yeniden çek
             await fetchNeeds();
@@ -138,9 +148,24 @@ const VictimDashboard = () => {
             setEditingNeed(null); // Pencereyi kapat
             alert("Talep güncellendi! ");
         } catch (error) {
-            console.error("Güncelleme hatası:", error);
-            const errorMessage = error.response?.data?.message || error.response?.data?.error || "Güncellerken hata oluştu.";
-            alert(errorMessage);
+            console.error("=== GÜNCELLEME HATASI ===");
+            console.error("Hata objesi:", error);
+            console.error("Hata mesajı:", error.message);
+            console.error("Response status:", error.response?.status);
+            console.error("Response data:", error.response?.data);
+            console.error("Request URL:", error.config?.url);
+            console.error("Request method:", error.config?.method);
+            
+            let errorMessage = "Güncellerken hata oluştu.";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            alert(`Hata: ${errorMessage}`);
         }
     };
 

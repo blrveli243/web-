@@ -8,12 +8,23 @@ async function bootstrap() {
   // CORS Ayarı: Frontend'in backend'e veri gönderebilmesi için şarttır
   app.enableCors({
     origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
   // ValidationPipe: Formdan gelen verileri (email gibi) kontrol eder
-  app.useGlobalPipes(new ValidationPipe());
+  // Production'da strict mode'u kapatıyoruz ki update işlemleri çalışsın
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: false, // Tüm alanları kabul et
+      forbidNonWhitelisted: false, // Ekstra alanları reddetme
+      transform: true, // Otomatik tip dönüşümü
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
 
   // Render için dinamik port ayarı
   const port = process.env.PORT || 3000;

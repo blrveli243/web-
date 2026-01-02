@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { NeedsService } from './needs.service';
 import { CreateNeedDto } from './dto/create-need.dto';
@@ -52,23 +53,7 @@ export class NeedsController {
     return this.needsService.findAll();
   }
 
-  // --- GÜNCELLEME KAPISI ---
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: any, @Request() req) {
-    // Önce talebi bul
-    const need = await this.needsService.findOne(+id);
-    if (!need) {
-      throw new ForbiddenException('Talep bulunamadı');
-    }
-
-    // Sadece talep sahibi güncelleyebilir
-    if (need.userId !== req.user.id) {
-      throw new ForbiddenException('Bu talebi güncelleyemezsiniz');
-    }
-
-    return this.needsService.update(+id, body);
-  }
-
+  // Spesifik route'lar önce tanımlanmalı (daha spesifik olan önce)
   @Patch(':id/status')
   async updateStatus(
     @Param('id') id: string,
@@ -86,6 +71,38 @@ export class NeedsController {
     }
 
     return this.needsService.updateStatus(+id, status);
+  }
+
+  // --- GÜNCELLEME KAPISI ---
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: any, @Request() req) {
+    this.logger.log(`PATCH /needs/${id} çağrıldı`);
+    this.logger.log('Gelen veri:', JSON.stringify(body));
+    this.logger.log('Kullanıcı ID:', req.user.id);
+
+    // Önce talebi bul
+    const need = await this.needsService.findOne(+id);
+    if (!need) {
+      this.logger.error(`Talep bulunamadı: ${id}`);
+      throw new NotFoundException('Talep bulunamadı');
+    }
+
+    this.logger.log(`Talep sahibi ID: ${need.userId}, İstek yapan ID: ${req.user.id}`);
+
+    // Sadece talep sahibi güncelleyebilir
+    if (need.userId !== req.user.id) {
+      this.logger.error(`Yetkisiz güncelleme denemesi: Talep ${id} için kullanıcı ${req.user.id}`);
+      throw new ForbiddenException('Bu talebi güncelleyemezsiniz');
+    }
+
+    try {
+      const result = await this.needsService.update(+id, body);
+      this.logger.log(`Talep ${id} başarıyla güncellendi`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Talep güncelleme hatası: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Delete(':id')
