@@ -16,21 +16,25 @@ export class NeedsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const count = await this.categoryRepository.count();
-    if (count === 0) {
-      // Varsayılan kategorileri oluştur
-      const defaultCategories = [
-        { name: 'Genel Yardım' },
-        { name: 'Gıda' },
-        { name: 'Barınma (Çadır)' },
-        { name: 'İlaç/Sağlık' },
-        { name: 'Su' },
-        { name: 'Kıyafet' },
-        { name: 'Ulaşım' },
-      ];
-      
-      for (const category of defaultCategories) {
-        await this.categoryRepository.save(category);
+    // Olması gereken kategori listesi
+    const defaultCategories = [
+      'Genel Yardım',
+      'Gıda',
+      'Barınma (Çadır)',
+      'İlaç/Sağlık',
+      'Su',
+      'Kıyafet',
+      'Ulaşım',
+      'Isınma'
+    ];
+
+    // Hepsini tek tek kontrol et
+    for (const categoryName of defaultCategories) {
+      const exists = await this.categoryRepository.findOne({ where: { name: categoryName } });
+
+      // Eğer veritabanında yoksa, oluştur ve kaydet
+      if (!exists) {
+        await this.categoryRepository.save({ name: categoryName });
       }
     }
   }
